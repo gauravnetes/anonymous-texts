@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { useDebounceValue } from 'usehooks-ts'
+import { useDebounceCallback, useDebounceValue } from 'usehooks-ts'
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { SignUpSchema } from "@/schemas/signUpSchema"
@@ -22,7 +22,7 @@ const page = () => {
   // loader state
   const [isCheckingUsername, setIsCheckingUsername] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const debouncedUsername = useDebounceValue(username, 300)
+  const debounced = useDebounceCallback(setUsername, 300)
   const { toast } = useToast()
   // to redirect users after a successful form submission
   // dynamic routing: update the URL based on the username ex: /profile/{username}
@@ -40,13 +40,13 @@ const page = () => {
   // use the check-username route (GET request)
   useEffect(() => {
     const checkUsernameUnique = async () => {
-      if (debouncedUsername) { // first time debouoncedUsername will be false 
+      if (username) { // first time debouoncedUsername will be false 
         setIsCheckingUsername(true)
         setUsernameMessage('')
         try {
           // log this response
-          const response = await axios.get(`/api/check-username-unique?username=${debouncedUsername}`)
-          setUsernameMessage(response.data.message)
+          const response = await axios.get(`/api/check-username-unique?username=${username}`)
+          setUsernameMessage(response.data.message) // if username message doesn't set hold it in a variable and then pass it
         } catch (error) {
           const axiosError = error as AxiosError<ApiResponse> // send the error message of ApiResponse Type. So you get the error message in ApiResponse format.
           setUsernameMessage(
@@ -59,7 +59,7 @@ const page = () => {
       }
     }
     checkUsernameUnique()
-  }, [debouncedUsername])
+  }, [username])
 
   // onSubmit method, passed with handleSubmit
   const onSubmit = async (data: z.infer<typeof SignUpSchema>) => {
@@ -127,14 +127,20 @@ const page = () => {
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
+                <div>
                   <Input placeholder="username" {...field} 
                   onChange={(e) => {
                     field.onChange(e)
-                    setUsername(e.target.value)
+                    debounced(e.target.value)
                     // handling the setUsername seperately cause 
                     // we are debouncing and making a api request between some times so it should be handled seperately
                   }}
                   />
+                  {isCheckingUsername && (<Loader2 className="animate-spin"/>)}
+                  <p className={`text-sm ${usernameMessage === "username is unique" ? 'text-green-500' : 'text-red-500'}`}>
+                    {usernameMessage}
+                  </p>
+                </div>
                 </FormControl>
                   {/* FormDescription can be added for more user friendliness */}
                 <FormMessage />
