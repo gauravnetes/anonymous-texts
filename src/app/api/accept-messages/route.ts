@@ -13,7 +13,7 @@ export async function POST(request: Request) {
         return Response.json(
             {
                 success: false, 
-                message: "Not Authenticatedr"
+                message: "Not Authenticated"
             }, { status: 401 }
         )
     }

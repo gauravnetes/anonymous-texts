@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "./ui/button";
 import { X } from "lucide-react";
-import { Message } from "postcss";
+import { Message } from "@/models/User.model";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 import { ApiResponse } from "@/types/ApiResponse";
